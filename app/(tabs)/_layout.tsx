@@ -22,7 +22,10 @@ export default function TabLayout() {
         tabBarActiveTintColor: '#6200ee', // Couleur de l'onglet actif (violet premium)
         tabBarInactiveTintColor: '#8e8c84', // Couleur des onglets inactifs (gris doux)
         
-        // AFFICHAGE EN-TÊTE : useClientOnlyValue masque l'en-tête natif sur le Web pour éviter les conflits d'affichage.
+        // AFFICHAGE EN-TÊTE : useClientOnlyValue(webValue, nativeValue)
+        // Sur le Web (SSR), React s'exécute côté serveur d'abord où les hooks natifs ne sont pas disponibles.
+        // - Premier argument (false) : valeur utilisée sur le Web -> on cache l'en-tête natif pour éviter les conflits.
+        // - Deuxième argument (true) : valeur utilisée sur iOS/Android -> on affiche l'en-tête natif.
         headerShown: useClientOnlyValue(false, true),
         
         // STYLE VISUEL DU FOOTER :

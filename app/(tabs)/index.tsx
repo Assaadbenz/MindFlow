@@ -14,11 +14,15 @@ import { router } from 'expo-router';
  * 
  * C'est le tableau de bord d'accueil de l'application (le portail).
  * Il affiche le logo, le titre "MindFlow", et 3 raccourcis rapides cliquables.
+ * 
+ * Cet écran est volontairement léger (aucune base de données, aucun appel réseau) :
+ * son seul rôle est de servir de hub de navigation vers les autres onglets.
  */
 
 export default function HomeScreen() {
   return (
-    // SafeAreaView : Empêche le contenu de se superposer sur la barre d'état (heure, batterie) ou l'encoche de l'appareil.
+    // SafeAreaView : Composant de react-native-safe-area-context (plus fiable que celui de React Native).
+    // Il garantit que le contenu ne chevauche pas l'encoche (iPhone), la barre d'état ou la barre de navigation Android.
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
 
@@ -43,9 +47,13 @@ export default function HomeScreen() {
           {/* Raccourci 1 : Ajouter une tâche */}
           <TouchableOpacity
             style={styles.actionCard}
-            // router.push : Redirige l'utilisateur vers la page d'ajout
+            // router.push : Navigue vers la route '/add' sans recharger l'app (navigation SPA).
+            // Le cast 'as any' est temporaire : expo-router v6 génère les types de routes automatiquement
+            // mais le projet doit être exécuté une première fois pour les générer.
             onPress={() => router.push('/add' as any)}
-            activeOpacity={0.7} // Marge de transparence lors du clic (micro-interaction)
+            // activeOpacity : Niveau de transparence au moment du clic (0.7 = 70% opaque).
+            // Cela donne une réponse visuelle immédiate sans animation coûteuse.
+            activeOpacity={0.7}
           >
             <View style={[styles.actionIconContainer, { backgroundColor: '#fdf2ec' }]}>
               <Text style={[styles.actionIconText, { color: '#e07a5f' }]}>＋</Text>

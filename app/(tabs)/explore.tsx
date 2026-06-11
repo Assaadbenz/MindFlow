@@ -12,7 +12,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
  * ÉCRAN D'INSPIRATION (CITATIONS DE SAGESSE)
  * 
  * Cet écran récupère de manière asynchrone des citations célèbres inspirantes
- * depuis l'API publique stable 'dummyjson.com/quotes/random'.
+ * depuis l'API publique 'dummyjson.com/quotes/random'.
+ * 
+ * Pourquoi dummyjson.com ?
+ * - API gratuite, sans clé, sans limite de requêtes (contrairement à d'autres APIs de citations).
+ * - Retourne du JSON stable avec les champs 'quote' et 'author' toujours présents.
+ * - Alternative simple à quotable.io ou zenquotes.io qui requièrent une gestion CORS ou une clé API.
  */
 
 interface QuoteResponse {
@@ -28,7 +33,14 @@ export default function ExploreScreen() {
   const [loading, setLoading] = useState<boolean>(true); // Actif par défaut pendant qu'on télécharge
   const [error, setError] = useState<string | null>(null);
 
-  // CHARGEMENT CITATION : Effectue un appel réseau (HTTP Fetch) pour obtenir une citation aléatoire
+  // CHARGEMENT CITATION : Effectue un appel réseau (HTTP Fetch) pour obtenir une citation aléatoire.
+  //
+  // Pourquoi useCallback avec un tableau de dépendances vide [] ?
+  // useCallback mémorise la fonction pour éviter de la re-créer à chaque rendu.
+  // Le tableau [] signifie que cette fonction ne dépend d'aucune variable externe :
+  // elle est donc créée une seule fois et réutilisée. C'est important car fetchQuote
+  // est passée comme dépendance dans useEffect (ligne suivante) : sans useCallback,
+  // useEffect se déclencherait en boucle infinie à chaque rendu.
   const fetchQuote = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -53,11 +65,15 @@ export default function ExploreScreen() {
         'Oups ! Impossible de charger l\'inspiration. Veuillez vérifier votre connexion Internet.'
       );
     } finally {
+      // 'finally' s'exécute toujours, que la requête ait réussi ou échoué.
+      // On arrête le chargement ici pour éviter de le répéter dans le try ET le catch.
       setLoading(false); // Chargement terminé (succès ou échec)
     }
   }, []);
 
-  // ÉTAPE INITIALE : Lance le premier chargement de la citation dès que l'écran apparaît
+  // ÉTAPE INITIALE : Lance le premier chargement de la citation dès que l'écran apparaît.
+  // useEffect avec [fetchQuote] comme dépendance garantit que le chargement ne se relance
+  // que si fetchQuote change (ce qui n'arrive jamais grâce au useCallback vide ci-dessus).
   useEffect(() => {
     fetchQuote();
   }, [fetchQuote]);

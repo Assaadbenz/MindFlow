@@ -30,7 +30,9 @@ export default function AddTaskScreen() {
   const [isTitleFocused, setIsTitleFocused] = useState(false);
   const [isDescFocused, setIsDescFocused] = useState(false);
 
-  // FEEDBACK : Permet d'afficher une bannière verte de succès ou rouge d'erreur sous le titre
+  // FEEDBACK : Permet d'afficher une bannière verte de succès ou rouge d'erreur sous le titre.
+  // On utilise un objet { type, message } plutôt que deux états séparés pour garantir que
+  // le type et le message sont toujours mis à jour ensemble (cohérence atomique).
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error' | null; message: string }>({
     type: null,
     message: '',
@@ -65,7 +67,10 @@ export default function AddTaskScreen() {
       // Ferme le clavier virtuel sur mobile
       Keyboard.dismiss();
 
-      // On fait disparaître le bandeau de succès après 4 secondes
+      // Auto-masquage du bandeau de succès après 4 secondes.
+      // 4s est un délai suffisant pour que l'utilisateur lise le message sans qu'il reste trop longtemps.
+      // On utilise la forme fonctionnelle du setter (prev => ...) pour ne masquer le bandeau QUE si
+      // c'est encore un succès : ainsi, si une erreur survient entre temps, on ne la cache pas accidentellement.
       setTimeout(() => {
         setFeedback((prev) => (prev.type === 'success' ? { type: null, message: '' } : prev));
       }, 4000);
@@ -77,7 +82,10 @@ export default function AddTaskScreen() {
     }
   };
 
-  // FORMULAIRE : Le squelette HTML/React Native de notre formulaire
+  // FORMULAIRE : Le JSX du formulaire est extrait dans une variable 'formContent' plutôt que
+  // placé directement dans le return. Pourquoi ? Parce qu'on doit l'envelopper dans deux conteneurs
+  // différents selon la plateforme (TouchableWithoutFeedback sur mobile, rien sur web).
+  // Cette approche évite de dupliquer tout le JSX du formulaire dans deux branches if/else.
   const formContent = (
     <View style={styles.container}>
       <View style={styles.card}>
@@ -157,12 +165,15 @@ export default function AddTaskScreen() {
     </View>
   );
 
-  // Sur le Web, on retourne directement le formulaire
+  // Sur le Web, aucun clavier virtuel n'apparaît : on retourne directement le formulaire.
   if (Platform.OS === 'web') {
     return formContent;
   }
 
-  // Sur mobile, on enveloppe dans TouchableWithoutFeedback pour fermer le clavier au clic en dehors
+  // Sur mobile (iOS/Android), le clavier virtuel apparaît et masque parfois le bas de l'écran.
+  // TouchableWithoutFeedback intercepte les clics sur les zones vides et appelle Keyboard.dismiss()
+  // pour replier le clavier. Sans ça, l'utilisateur devrait appuyer sur "Retour" pour le fermer.
+  // Note : On n'utilise pas KeyboardAvoidingView ici car la mise en page est gérée par justifyContent: 'center'.
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       {formContent}
